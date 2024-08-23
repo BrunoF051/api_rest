@@ -16,6 +16,7 @@ datasource db {
 model User {
   id    Int     @default(autoincrement()) @id
   email String  @unique
+  keycloakId String @unique
   name  String?
   posts Post[]
 }

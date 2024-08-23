@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/services/prisma/prisma.service';
 import { User, Prisma } from '@prisma/client';
 import { FindUsersDto } from './dto/find-users.dto';
@@ -32,11 +32,18 @@ export class UsersService {
     });
   }
 
-  async updateUser(params: {
-    where: Prisma.UserWhereUniqueInput;
-    data: Prisma.UserUpdateInput;
-  }): Promise<User> {
+  async updateUser(
+    params: {
+      where: Prisma.UserWhereUniqueInput;
+      data: Prisma.UserUpdateInput;
+    },
+    reqUser,
+  ): Promise<User> {
     const { where, data } = params;
+
+    if (where.keycloakId !== reqUser.sub) {
+      throw new ForbiddenException('You can only update your own profile');
+    }
     return this.prisma.user.update({
       data,
       where,

@@ -46,13 +46,17 @@ export class UsersController {
   // MessagePattern for updating a user (microservices)
   @MessagePattern('updateUser')
   async updateMessage(
-    @Payload() updateUserDto: { id: number; data: Prisma.UserUpdateInput },
+    @Payload() updateUserDto: { id: string; data: Prisma.UserUpdateInput },
+    @AuthenticatedUser() reqUser: any,
   ): Promise<User> {
     const { id, data } = updateUserDto;
-    return this.usersService.updateUser({
-      where: { id },
-      data,
-    });
+    return this.usersService.updateUser(
+      {
+        where: { keycloakId: id },
+        data,
+      },
+      reqUser,
+    );
   }
 
   // MessagePattern for deleting a user (microservices)
@@ -75,21 +79,25 @@ export class UsersController {
 
   // HTTP endpoint for finding a single user by ID
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<User | null> {
-    return this.usersService.user({ id });
+  async findOne(@Param('id') id: string): Promise<User | null> {
+    return this.usersService.user({ keycloakId: id });
   }
 
   // HTTP endpoint for updating a user
   @Put(':id')
   @Roles({ roles: ['user'], mode: RoleMatchingMode.ALL })
   async update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() data: Prisma.UserUpdateInput,
+    @AuthenticatedUser() reqUser: any,
   ): Promise<User> {
-    return this.usersService.updateUser({
-      where: { id },
-      data,
-    });
+    return this.usersService.updateUser(
+      {
+        where: { keycloakId: id },
+        data,
+      },
+      reqUser,
+    );
   }
 
   // HTTP endpoint for deleting a user
